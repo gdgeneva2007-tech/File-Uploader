@@ -1,3 +1,29 @@
 <%- include('./partials/header') %>
 <h1 class="text-3xl font-bold">Home</h1>
+<div class="flex gap-6 my-10">
+    <form action="/folders/new" method="GET">
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-medium">
+        Create Folder
+        </button>
+    </form>
+    <form action="/files/upload" method="GET">
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-medium">
+        Create File
+        </button>
+    </form>
+</div>
+
+<div class="flex flex-col gap-6 *:bg-gray-200 *:rounded-2xl *:text-2xl">
+    <% if(rootFolders.length){ %>
+        <% for( let i = 0; i < rootFolders.length; i++ ) { %>
+            <a href="/folders/<%= rootFolders[i].id %>">📁 <%= rootFolders[i].name %></a>
+        <% } %>
+    <% } %>
+
+    <% if(uncategorizedFiles.length){ %>
+        <% for( let i = 0; i < uncategorizedFiles.length; i++ ) { %>
+            <a href="/files/<%= uncategorizedFiles[i].id %>"> 🗋 <%= uncategorizedFiles[i].name %></a>
+        <% } %>
+    <% } %>
+</div>
 <%- include('./partials/footer') %>

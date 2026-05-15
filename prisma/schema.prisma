@@ -4,15 +4,41 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   firstName String
   lastName  String
-  email     String @unique
+  email     String   @unique
   password  String
+  folders   Folder[]
+}
+
+model Folder {
+  id        Int      @id @default(autoincrement())
+  name      String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  parentId  Int?
+  parent    Folder?  @relation("FolderChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[] @relation("FolderChildren")
+  files     File[]
+  createdAt DateTime @default(now())
+
+  shareId     String?   @unique
+  shareExpiry DateTime?
+}
+
+model File {
+  id           Int      @id @default(autoincrement())
+  name         String
+  userId       Int
+  folderId     Int?
+  folder       Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  url          String //used for showing a file
+  cloudinaryId String //used for deleting a file
+  uploadedAt   DateTime @default(now())
 }
 
 model Session {

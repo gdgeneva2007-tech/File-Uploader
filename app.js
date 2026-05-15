@@ -14,8 +14,12 @@ const prisma = require("./db/prisma");
 // ── ADD YOUR ROUTERS HERE ──────────────────────────────
 const indexRouter = require("./routes/index");
 const authRouter = require("./routes/auth");
+
 // const yourRouter = require("./routes/yourRouter");
 // ──────────────────────────────────────────────────────
+const fileRouter=require("./routes/file")
+const folderRouter=require("./routes/folder")
+const shareRouter=require("./routes/share")
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,6 +57,9 @@ app.use("/", indexRouter);
 app.use("/auth", authRouter);
 // app.use("/your-resource", yourRouter);
 // ──────────────────────────────────────────────────────
+app.use("/folders",folderRouter)
+app.use("/files",fileRouter)
+app.use("/share",shareRouter)
 
 // 404
 app.use((req, res) => {

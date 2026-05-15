@@ -1,0 +1,70 @@
+<%- include("../partials/header") %>
+<h1>Folder: <%= folder.name %></h1>
+<% if(folder.parent){ %>
+    <a href="/folders/<%= folder.parent.id %>">Back to <%= folder.parent.name %></a>
+<% } %>
+<div class="flex gap-10">
+    <form action="/folders/new" method="GET">
+        <input type="hidden" name="parentId" value="<%= folder.id %>">
+        <button type="submit" class="p-4 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-medium">
+        Create Sub Folders!
+        </button>
+    </form>
+    <form action="/files/upload" method="GET">
+        <input type="hidden" name="folderId" value="<%= folder.id %>">
+        <button type="submit" class="p-4 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-medium">
+        Create Files!
+        </button>
+    </form>
+
+    <form action="/folders/<%= folder.id %>/edit" method="GET">
+        <input type="hidden" name="folderId" value="<%= folder.id %>">
+        <button type="submit" class="p-4 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-medium">
+        Rename folder!
+        </button>
+    </form>
+
+    <form action="/folders/<%= folder.id %>/delete" method="POST">
+        <button type="submit" onclick="return confirm('Delete this folder permanently?')"
+        class="p-4 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-medium">
+        Delte this folder
+        </button>
+    </form>
+</div>
+
+<div class="flex flex-col gap-6">
+    <% for( let i = 0; i < folder.children.length; i++ ) { %>
+        <a href="/folders/<%= folder.children[i].id %>">📁 <%= folder.children[i].name %></a>
+    <% } %>
+
+    <% for( let i = 0; i < folder.files.length; i++ ) { %>
+        <a href="/files/<%= folder.files[i].id %>"> 🗋 <%= folder.files[i].name %></a>
+    <% } %>
+</div>
+
+<% if(!folder.shareExpiry||new Date(folder.shareExpiry)<new Date()){ %>
+    <form action="/folders/<%= folder.id %>/share" method="POST">
+        <label for="days">Share for how many days?</label>
+        <select name="days" id="days">
+            <option value="1">1 day</option>
+            <option value="7">7 days</option>
+            <option value="30">30 days</option>
+        </select>
+        <button type="submit" onclick="return confirm('Share this folder?')"
+        class="p-4 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-medium">
+        Share
+        </button>
+    </form>
+<% }else{ %>
+    <p class="text-red-600">Share Id: <%= folder.shareId %></p>
+    <p class="text-red-600">Expire at: <%= folder.shareExpiry %></p>
+    <form action="/folders/<%= folder.id %>/unshare" method="POST">
+        <button type="submit" onclick="return confirm('Unshare this folder?')"
+        class="p-4 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-medium">
+        Unshare
+        </button>
+    </form>
+<% } %>
+
+
+<%- include("../partials/footer") %>

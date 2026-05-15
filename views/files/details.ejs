@@ -1,0 +1,13 @@
+<%- include("../partials/header") %>
+<p>Name:<%= file.name %></p>
+<p>url:<%= file.url %></p>
+<p>Uploaded at:<%= file.uploadedAt %></p>
+
+<form action="/files/<%= file.id %>/delete" method="POST" class="space-y-4 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <button type="submit" onclick="return confirm('Delete this file permanently?')" class="p-4 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-medium">
+      Delete
+    </button>
+  </form>
+</div>
+
+<%- include("../partials/footer") %>

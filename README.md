@@ -1,86 +1,163 @@
-# Updated template structure:
+# What the app does:
 
-express-prisma-template/
+Think of it as a simplified Google Drive:
+
+- You sign up and log in
+- You see your personal dashboard with your folders
+- You can create folders to organize files
+- Inside a folder you can upload files
+- You can view file details (name, size, upload date)
+- You can download files
+- You can delete files and folders
+- Admins/owners can share folders via a time-limited link
+
+# Visual Flow:
+
+Not logged in:
+/login or /signup only
+cannot see anything else
+
+Logged in - Dashboard (/):
+┌─────────────────────────────────┐
+│ My Drive │
+│ │
+│ [+ New Folder] │
+│ │
+│ 📁 Holiday Photos │
+│ 📁 Work Documents │
+│ 📁 Recipes │
+└─────────────────────────────────┘
+
+Inside a folder (/folders/1):
+┌─────────────────────────────────┐
+│ 📁 Holiday Photos │
+│ [+ Upload File] [Share Folder] │
+│ [Rename] [Delete Folder] │
+│ │
+│ 🖼 beach.jpg [Details] │
+│ 📄 itinerary.pdf [Details] │
+│ 🖼 sunset.png [Details] │
+└─────────────────────────────────┘
+
+File detail page (/files/1):
+┌─────────────────────────────────┐
+│ beach.jpg │
+│ Size: 2.4 MB │
+│ Uploaded: Jan 15 2024 │
+│ Folder: Holiday Photos │
+│ │
+│ [Download] [Delete] │
+└─────────────────────────────────┘
+
+# Project Folder Structure:
+
+file-uploader/
 ├── config/
-│ ├── passport.js ← auth (template)
-│ └── cloudinary.js ← NEW (template)
+│ ├── passport.js
+│ └── cloudinary.js
 ├── controllers/
-│ └── authController.js ← auth (template)
+│ ├── authController.js
+│ ├── dashboardController.js
+│ ├── folderController.js
+│ ├── fileController.js
+│ └── shareController.js ← extra credit
 ├── db/
-│ ├── prisma.js ← db client (template)
-│ └── queries.js ← starter queries (template)
+│ ├── prisma.js
+│ └── queries.js
 ├── middleware/
-│ ├── auth.js ← route guards (template)
-│ └── upload.js ← NEW multer config (change limits/types)
+│ ├── auth.js
+│ └── upload.js
 ├── utils/
-│ ├── cloudinaryUpload.js ← NEW upload/delete helpers (template)
-│ └── multerErrorHandler.js ← NEW error handler (template)
+│ ├── cloudinaryUpload.js
+│ └── multerErrorHandler.js
 ├── prisma/
-│ └── schema.prisma ← edit per project
+│ └── schema.prisma
 ├── routes/
-│ ├── index.js
-│ └── auth.js
+│ ├── index.js ← dashboard
+│ ├── auth.js
+│ ├── folders.js
+│ ├── files.js
+│ └── share.js ← extra credit
 ├── views/
 │ ├── partials/
 │ │ ├── header.ejs
 │ │ └── footer.ejs
-│ ├── index.ejs
+│ ├── index.ejs ← dashboard, shows folders
 │ ├── signup.ejs
 │ ├── login.ejs
-│ └── error.ejs
+│ ├── error.ejs
+│ ├── folders/
+│ │ ├── detail.ejs ← folder contents + upload button
+│ │ └── form.ejs ← create and rename folder
+│ ├── files/
+│ │ ├── upload.ejs ← upload form
+│ │ └── detail.ejs ← file info + download button
+│ └── share/
+│ └── view.ejs ← public shared folder view
 ├── public/
 │ └── css/
 │ └── output.css
 ├── app.js
 ├── input.css
 ├── tailwind.config.js
-├── .env ← never commit
-├── .env.example ← commit this
-├── .gitignore
-└── package.json
+├── .env
+├── .env.example
+└── .gitignore
 
-# First Time Setup:
+# All Routes:
 
-1. Clone template
-   git clone your-template-url my-new-project
-   cd my-new-project
+AUTH ROUTES (/auth)
+─────────────────────────────────────────────────────────────
+GET /auth/signup → show signup form
+POST /auth/signup → create account → redirect to login
+GET /auth/login → show login form
+POST /auth/login → passport checks → redirect to /
+POST /auth/logout → destroy session → redirect to /auth/login
 
-2. Install dependencies
-   npm install
+DASHBOARD ROUTE (/)
+─────────────────────────────────────────────────────────────
+GET / → show all user's folders (logged in only)
 
-3. Set up .env
-   cp .env.example .env
-   fill in your DATABASE_URL and SESSION_SECRET
+FOLDER ROUTES (/folders)
+─────────────────────────────────────────────────────────────
+GET /folders/new → show create folder form
+POST /folders/new → create folder → redirect to /
+GET /folders/:id → show folder contents (its files)
+GET /folders/:id/edit → show rename folder form
+POST /folders/:id/edit → rename folder → redirect to /folders/:id
+POST /folders/:id/delete → delete folder + its files → redirect to /
 
-4. Edit prisma/schema.prisma
-   add your project-specific models
+FILE ROUTES (/files)
+─────────────────────────────────────────────────────────────
+GET /files/upload → show upload form
+(with folder pre-selected if ?folderId=1)
+POST /files/upload → multer → cloudinary → save to db → redirect
+GET /files/:id → show file detail page (name, size, date, download)
+POST /files/:id/delete → delete from cloudinary + db → redirect to folder
 
-5. Create database tables
-   npx prisma migrate dev --name init
+SHARE ROUTES (/share) - Extra Credit
+─────────────────────────────────────────────────────────────
+POST /folders/:id/share → generate UUID link with expiry → redirect to folder
+GET /share/:shareId → PUBLIC (no auth needed)
+check expiry → show folder contents
 
-6. Start building
-   npm run dev
+# Notes
 
-# The Only Things You Change Per Project:
+1. if(!req.body.name?.trim())  
+   The question mark checks if req.body.name is undefined or null first before attempting to call .trim() on it
 
-![alt text](image.png)
+2. Use for...of loop for async callbacks so they can be awaited in order.
+   Don't use 'forEach'
 
-TEMPLATE FILES (copy and forget):
-config/cloudinary.js → cloudinary connection setup
-utils/cloudinaryUpload.js → uploadToCloudinary() and deleteFromCloudinary()
-utils/multerErrorHandler.js → handleUpload() error wrapper
-middleware/upload.js → multer config (just change size + types)
+3. GET has no request body
+   To pass parameters to GET form:
 
-MASTER THESE CONCEPTS:
-→ enctype="multipart/form-data" on any form with file input
-→ req.file.buffer → the file data from multer memory storage
-→ result.secure_url → save this in database (to display/download file)
-→ result.public_id → save this in database (to delete from cloudinary later)
-→ Always delete from Cloudinary AND database together
+<form action="/folders/new" method="GET">
+   <input type="hidden" name="parentId" value="42" />
+   <button type="submit">Create subfolder</button>
+</form>
 
-CHANGE PER PROJECT:
-→ MAX_FILE_SIZE in upload.js
-→ ALLOWED_TYPES in upload.js
-→ folder name in uploadToCloudinary()
-→ File model fields in schema.prisma
-→ File queries in queries.js
+The browser adds parentId when it builds the GET URL,
+because the hidden input has a name
+
+GET /folders/new?parentId=42
