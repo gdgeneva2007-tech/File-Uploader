@@ -4,6 +4,17 @@
 
 const cloudinary = require("../config/cloudinary");
 
+// Detect what resource_type Cloudinary needs
+// based on the file's mimetype
+function getResourceType(mimetype){
+  if(mimetype.startsWith("image/"))return "image"
+  if(mimetype.startsWith("video/"))return "video"
+  // everything else (pdf, txt, html, zip, etc)="raw"
+  return "raw"
+}
+
+
+
 // ─────────────────────────────────────────────────────
 // Upload a file buffer to Cloudinary
 //
@@ -18,14 +29,20 @@ const cloudinary = require("../config/cloudinary");
 //   result.bytes      → file size
 //   result.format     → file extension
 // ─────────────────────────────────────────────────────
-const uploadToCloudinary = (buffer, folder = "uploads", resourceType = "auto") => {
+const uploadToCloudinary = (buffer, folder = "uploads", mimetype="") => {
   // Cloudinary's upload_stream uses callbacks not async/await
   // We wrap it in a Promise so we can use async/await in controllers
+  const resourceType=getResourceType(mimetype)
+                                    // detect from mimetype
+  
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: folder,
         resource_type: resourceType
+        //"image": for images
+        //"video": for videos
+        //"raw": for everything else
       },
       (error, result) => {
         if (error) reject(error);

@@ -13,35 +13,13 @@ const storage = multer.memoryStorage();
 // ─────────────────────────────────────────────────────
 // CHANGE THESE PER PROJECT
 // ─────────────────────────────────────────────────────
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB - change as needed
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 5MB - change as needed
 
-const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-  "application/pdf",
-  // add or remove types per project
-];
-
-// ─────────────────────────────────────────────────────
-// TEMPLATE: this function structure never changes
-// ─────────────────────────────────────────────────────
-const fileFilter = (req, file, cb) => {
-  if (ALLOWED_TYPES.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error(`File type not allowed. Allowed types: ${ALLOWED_TYPES.join(", ")}`),
-      false
-    );
-  }
-};
-
+//Remove filFilter completely to allow all file types
 const upload = multer({
   storage,
   limits: { fileSize: MAX_FILE_SIZE },
-  fileFilter
+  // no fileFilter = all types accepted
 });
 
 module.exports = upload;

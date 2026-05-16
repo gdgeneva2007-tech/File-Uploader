@@ -50,16 +50,21 @@ async function postCreateFolder(req,res,next){
 
 async function getFolderDetail(req,res,next){
     // /folders/:id
-    const id=parseInt(req.params.id)
-    if(id===null||isNaN(id)){
-        return res.status(404).render("error",{title:"Not found",message:"No such folder."})
+    try{
+        const id=parseInt(req.params.id)
+        if(id===null||isNaN(id)){
+            return res.status(404).render("error",{title:"Not found",message:"No such folder."})
+        }
+        const folder=await db.getFolderById(id)
+        if(!folder||folder.userId!==req.user.id)return res.status(403).render("error",{title:"Forbidden",message:"It's not your folder."})
+        res.render("folders/details",{
+            title:"Folder detail",
+            folder
+        })
+    }catch(err){
+        next(err)
     }
-    const folder=await db.getFolderById(id)
-    if(!folder||folder.userId!==req.user.id)return res.status(403).render("error",{title:"Forbidden",message:"It's not your folder."})
-    res.render("folders/details",{
-        title:"Folder detail",
-        folder
-    })
+    
 }
 
 async function getRenameFolderForm(req,res,next){
@@ -115,7 +120,8 @@ async function deleteFolder(req,res,next){
         const folder=await db.getFolderById(id)
         if(!folder||folder.userId!==req.user.id)return res.status(403).render("error",{title:"Forbidden",message:"It's not your folder."})
         const parentId=folder.parentId
-        for(const file of folder.files) {
+        const allNestedFiles=await db.getAllNestedFiles(id)
+        for(const file of allNestedFiles) {
             await deleteFromCloudinary(file.cloudinaryId)
         }
 
@@ -129,6 +135,7 @@ async function deleteFolder(req,res,next){
         next(err)
     }
 }
+
 
 module.exports={
     getCreateFolderForm,

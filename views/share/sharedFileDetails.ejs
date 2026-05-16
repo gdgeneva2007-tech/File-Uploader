@@ -1,0 +1,10 @@
+<%- include("../partials/header") %>
+
+<a href="/share/<%= shareId %>/folders/<%= file.folderId %>" class="text-2xl text-red-600 font-bold">Back</a>
+
+<p>Name:<%= file.name %></p>
+<p>url:<%= file.url %></p>
+<p>Uploaded at:<%= file.uploadedAt %></p>
+
+
+<%- include("../partials/footer") %>

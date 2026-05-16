@@ -1,14 +1,16 @@
 <%- include("../partials/header") %>
 <h1><%= folder.name %></h1>
-<h2>Shared by <%= folder.user.firstName %> <%= folder.user.lastName %></h2>
-
+<h2>Shared by <%= firstName %> <%= lastName %></h2>
+<% if(folder.shareId!==shareId){ %>
+    <a href="/share/<%= shareId %>/folders/<%= folder.parentId %>" class="text-2xl text-red-600 font-bold">Back</a>
+<% } %>
 <div class="flex flex-col gap-6">
     <% for( let i = 0; i < folder.children.length; i++ ) { %>
-        <a href="/folders/<%= folder.children[i].id %>">📁 <%= folder.children[i].name %></a>
+        <a href="/share/<%= shareId %>/folders/<%= folder.children[i].id %>">📁 <%= folder.children[i].name %></a>
     <% } %>
 
     <% for( let i = 0; i < folder.files.length; i++ ) { %>
-        <a href="/files/<%= folder.files[i].id %>"> 🗋 <%= folder.files[i].name %></a>
+        <a href="/share/<%= shareId %>/files/<%= folder.files[i].id %>"> 🗋 <%= folder.files[i].name %></a>
     <% } %>
 </div>
 <%- include("../partials/footer") %>

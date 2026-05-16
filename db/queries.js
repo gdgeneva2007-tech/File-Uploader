@@ -1,5 +1,5 @@
 // db/queries.js
-const { Children } = require("react");
+const { DbNull } = require("@prisma/client/runtime/client");
 const prisma = require("./prisma");
 const {v4: uuidv4} =require("uuid")
 
@@ -81,9 +81,11 @@ async function renameFolder(id,name){
   })
 }
 
-async function createFile(name,userId,folderId=null,url,cloudinaryId){
+async function createFile(name,userId,folderId=null,url,cloudinaryId,mimetype){
   return await prisma.file.create({
-    data:{name,userId,folderId,url,cloudinaryId}
+    data:{name,userId,folderId,url,cloudinaryId,
+      mimetype:mimetype||"application/octet-stream"
+    }
   })
 }
 
@@ -126,14 +128,61 @@ async function createShareLink(folderId,expiryDate){
   })
 }
 
+async function getSharedAncestor(folderId){
+  const folder=await prisma.folder.findUnique({
+    where:{id:folderId}
+  })
+  if(!folder)return null
+  if(new Date()<=new Date(folder.shareExpiry))return folder.shareId
+  if(folder.parentId===null)return null
+  return getSharedAncestor(folder.parentId)
+}
+
+async function getSharedAncestorOfFile(fileId){
+  const file=await prisma.file.findUnique({
+    where:{id:fileId}
+  })
+  if(!file)return null
+  if(file.folderId===null)return null
+  const ancestorFolderShareId=await getSharedAncestor(file.folderId)
+  return ancestorFolderShareId
+}
+
+
+async function getFilesByFolderId(folderId){
+  return await prisma.file.findMany({
+    where:{folderId}
+  })
+}
+
+async function getChildrenFolders(parentId){
+  return await prisma.folder.findMany({
+    where:{parentId}
+  })
+}
+
+async function getAllNestedFiles(folderId){
+  let allFiles=await getFilesByFolderId(folderId)
+  const childrenFolders=await getChildrenFolders(folderId)
+  if(!childrenFolders.length)return allFiles
+  for(const child of childrenFolders){
+    const childFiles=await getAllNestedFiles(child.id)
+    allFiles=allFiles.concat(childFiles)
+  }
+  return allFiles
+}
 
 module.exports = {
   getUserByEmail,
   getUserById,
   createUser,
   getFolderById,getRootFolders,
-  getUncategorizedFiles,getFileById,createFolder,removeFolder,renameFolder,createFile,removeFile,
+  getUncategorizedFiles,getFileById,createFolder,
+  removeFolder,renameFolder,createFile,removeFile,
   createSharedFolder,
   removeSharedFolder,getFolderByShareId,
   createShareLink,
+  getSharedAncestor,
+  getSharedAncestorOfFile,
+  getAllNestedFiles
 };

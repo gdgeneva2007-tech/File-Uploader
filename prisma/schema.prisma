@@ -39,6 +39,7 @@ model File {
   url          String //used for showing a file
   cloudinaryId String //used for deleting a file
   uploadedAt   DateTime @default(now())
+  mimetype     String   @default("application/octet-stream")
 }
 
 model Session {

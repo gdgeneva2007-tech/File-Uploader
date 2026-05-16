@@ -1,6 +1,5 @@
 const db=require("../db/queries")
 const { uploadToCloudinary, deleteFromCloudinary } =require("../utils/cloudinaryUpload")
-const { selectFields } = require("express-validator/lib/field-selection")
 
 async function getCreateFileForm(req,res,next){
     try{
@@ -42,14 +41,17 @@ async function postCreateFile(req,res,next){
         // CLOUDINARY UPLOAD
         const result=await uploadToCloudinary(
             req.file.buffer,
-            "file-uploader"
+            "file-uploader",
+            req.file.mimetype    // ADD this 
         )
         
+        // Save mimetype in database so we can use it for deletion
         await db.createFile(req.file.originalname,
             req.user.id,
             folderId,
             result.secure_url,
-            result.public_id
+            result.public_id,
+            req.file.mimetype   
         )
         if(folderId!==null){
             res.redirect(`/folders/${folderId}`)
@@ -68,7 +70,9 @@ async function deleteFile(req,res,next){
         if(isNaN(id))return res.status(404).render("error",{title:"Not found",message:"No such file."})
         const file=await db.getFileById(id)
         if(!file||file.userId!==req.user.id)return res.status(403).render("error",{title:"Forbidden",message:"It's not your file."})
-        await deleteFromCloudinary(file.cloudinaryId)
+        
+        // Pass mimetype when deleting so Cloudinary knows resource_type
+        await deleteFromCloudinary(file.cloudinaryId,file.mimetype)
         await db.removeFile(id)
         if(file.folderId!==null){
             res.redirect(`/folders/${file.folderId}`)
